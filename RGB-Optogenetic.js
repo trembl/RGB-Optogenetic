@@ -60,13 +60,13 @@ const height = 1;
 /* -- DECLARE_PCB -- */
 let board = new PCB();
 
-var interior_r = 0.39
+var interior_r =  0.11
 let interior = path(
   pt(-1.15, -0.58),
-  ["fillet", interior_r, pt(-1.15, 0.55)],
-  ["fillet", interior_r, pt(3.35, 0.55)],
-  ["fillet", interior_r, pt(3.35, -2.35)],
-  ["fillet", interior_r, pt(-1.15, -2.35)],
+  ["fillet", interior_r, pt(-1.15, 0.25)],
+  ["fillet", interior_r, pt(4.3, 0.25)],
+  ["fillet", interior_r, pt(4.3, -2.75)],
+  ["fillet", interior_r, pt(-1.15, -2.75)],
   pt(-1.15, -1.09)
 )
 
@@ -74,17 +74,13 @@ let interior = path(
 board.addShape("interior", interior);
 
 /* -- ADD_COMPONENTS -- */
-//const xiao = board.add(XIAO, { translate: pt(-0.214, 0.098), rotate: 90, name: "XIAO_RP2040" })
-
-board.add(C_1206_JUMP, { translate: pt(-0.45, -0.35), rotate: 90, name: "JUMP" })
-board.add(C_1206_JUMP, { translate: pt(-0.45, -0.6), rotate: 0, name: "JUMP" })
-
+const xiao = board.add(XIAO, { translate: pt(-0.8, -1.25), rotate: 90, name: "XIAO_RP2040" })
 
 
 var offset = {x:mi(0.0), y:mi(0.0)}
-var nr_of_LEDs = 33
+var nr_of_LEDs = 96 
 nr_of_LEDs = Math.max(nr_of_LEDs, 2)
-var LEDs_per_row = 8
+var LEDs_per_row = 12
 var spacing = mi(9)
 var LEDs = []
 var Cs = []
@@ -243,11 +239,33 @@ for (var i=1; i<nr_of_LEDs; i++) {
 }
 
 
+// Manual Wires
+board.wire([
+  xiao.pad("5V"),
+  pt(-1.1,-1.05),
+  pt(-1.05,-1.1),
+  pt(-0.282,-1.1),
+], power_line)
 
+board.wire([
+  xiao.pad("GND"),
+  pt(-1,-0.8),
+  pt(-0.6,-0.8),
+  pt(-0.6,0.183),
+  pt(0.070,0.183),
+], power_line)
+
+board.wire([
+  xiao.pad("7"),
+  pt(-0.4,-0.85),
+  pt(-0.4,0),
+  pt(-0.1,0),
+  LEDs[0].pad("IN")
+], signal_line)
 
 /* -- RENDER_PCB -- */
-const limit0 = pt(-1.2, -2.4);
-const limit1 = pt(3.4, 0.6);
+const limit0 = pt(-1.2, -2.8);
+const limit1 = pt(4.35, 0.3);
 const xMin = Math.min(limit0[0], limit1[0]);
 const xMax = Math.max(limit0[0], limit1[0]);
 const yMin = Math.min(limit0[1], limit1[1]);
