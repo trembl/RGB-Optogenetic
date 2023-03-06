@@ -64,8 +64,8 @@ var c4 = board.add(C_1206, { translate: pt(mi(22.5), 0.000), rotate: 90, name: "
 var led4 = board.add(LED_RGB_WS2812B, { translate: pt(mi(27), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
 */
 var offset = {x:mi(0.0), y:mi(0.0)}
-var nr_of_LEDs = 30
-var LEDs_per_row = 9
+var nr_of_LEDs = 9
+var LEDs_per_row = 5
 var spacing = mi(9)
 var LEDs = []
 var Cs = []
@@ -125,64 +125,72 @@ board.wire(
   ], 0.019)
 
 */
-const power_lines = mm_to_inch(0.57)
-const signal_lines = mm_to_inch(0.32)
+const power_line = mm_to_inch(0.57)
+const signal_line = mm_to_inch(0.32)
 
 const wire_out_in = function(led0, led1, c) {
-  const trace_width = signal_lines
-  const direction = (led0.altRow) ? -1 : 1
+  const direction = d = (led0.altRow) ? -1 : 1
   const champfer = 0.036 * direction
   //const r = signal_lines*3.0
   const r = 0.069
   const e = 0.10  // extend to edge wires
   const type = "fillet" // or "chamfer"
+
+  // OUT/IN Wires
+  var points = [[type, r, pt(led0.padX("OUT"), c.posY)]]
+  if (led0.altRow !== led1.altRow) {
+    points = [
+      [type, r, pt(c.posX+e*d, led0.padY("OUT"))],
+      [type, r, pt(c.posX+e*d, c.posY)]
+    ]
+  } 
+  board.wire(
+    path(
+      led0.pad("OUT"),
+      ...points,
+      c.pos,
+      [type, r, pt(led1.padX("IN"), c.posY)],
+      led1.pad("IN")
+    ), signal_line
+  )
+
+  // GND Wires
+  const gnd_y_offset = 0.07 *d
   if (led0.altRow === led1.altRow) {
-    board.wire(
-      path(
-        // Nice Fillet/Chamfer
-        led0.pad("OUT"),
-        [type, r, pt(led0.padX("OUT"), c.posY)],
-        c.pos,
-        [type, r, pt(led1.padX("IN"), c.posY)],
-        led1.pad("IN")
-        /*
-        // Brutal Chamfer
-        pt(led0.padX("OUT"), led0.posY-r),
-        pt(led0.padX("OUT")+r, led0.posY),
-        pt(led1.padX("IN")-r, led1.posY),
-        pt(led1.padX("IN"), led1.posY+r),
-        led1.pad("IN")
-        */
-      ), trace_width
-    )
-  } else if(led0.altRow < led1.altRow) {
-    board.wire(
-      path(
-        led0.pad("OUT"),
-        [type, r, pt(c.posX+e, led0.padY("OUT"))],
-        [type, r, pt(c.posX+e, c.posY)],
-        c.pos,
-        [type, r, pt(led1.padX("IN"), c.posY)],
-        led1.pad("IN")
-      ), trace_width
-    )
-  } else {
-    board.wire(
-      path(
-        led0.pad("OUT"),
-        [type, r, pt(c.posX-e, led0.padY("OUT"))],
-        [type, r, pt(c.posX-e, c.posY)],
-        c.pos,
-        [type, r, pt(led1.padX("IN"), c.posY)],
-        led1.pad("IN"),
-      ), trace_width
-    )
+    board.wire([
+      led0.pad("GND"),
+      pt(led0.padX("GND"), led0.padY("GND") + gnd_y_offset),
+      pt(led1.padX("GND"), led1.padY("GND") + gnd_y_offset),
+      led1.pad("GND")
+    ], power_line)
+    
+    board.wire([
+      c.pad("GND"),
+      pt(c.padX("GND"), led1.padY("GND") + gnd_y_offset),
+    ], power_line)
   }
+
+  var gnd_x_offset = 0.28
+  if (led0.altRow !== led1.altRow) {
+    board.wire(path(
+      pt(led0.padX("GND"), led0.padY("GND") + gnd_y_offset),
+      [type, r*2, pt(led0.padX("GND")+gnd_x_offset, led0.padY("GND")+gnd_y_offset)],
+      [type, r*2, pt(led1.padX("IN")+gnd_x_offset, led1.padY("GND")-gnd_y_offset)],
+      pt(led1.padX("GND"), led1.padY("GND")-gnd_y_offset),
+      led1.pad("GND")
+    ), power_line)
+    
+    board.wire([
+      c.pad("GND"),
+      pt(c.padX("GND"), led1.padY("GND")-gnd_y_offset),
+    ], power_line)
+  } 
+
 }
 
 const wire_power = function(led_prev, led, c) {
   const trace_width = power_lines
-  const y_offset = 0.08
+  const y_offset = 0.13
   board.wire(
     [
       led.pad("GND"),
@@ -212,6 +220,7 @@ const wire_power = function(led_prev, led, c) {
 
   
 }
+
 for (var i=1; i<nr_of_LEDs; i++) {
   wire_out_in(LEDs[i-1], LEDs[i], Cs[i])
 }
