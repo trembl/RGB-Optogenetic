@@ -64,8 +64,8 @@ var c4 = board.add(C_1206, { translate: pt(mi(22.5), 0.000), rotate: 90, name: "
 var led4 = board.add(LED_RGB_WS2812B, { translate: pt(mi(27), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
 */
 var offset = {x:mi(0.0), y:mi(0.0)}
-var nr_of_LEDs = 58
-var LEDs_per_row = 10
+var nr_of_LEDs = 30
+var LEDs_per_row = 9
 var spacing = mi(9)
 var LEDs = []
 var Cs = []
@@ -132,25 +132,52 @@ const wire_out_in = function(led0, led1, c) {
   const trace_width = signal_lines
   const direction = (led0.altRow) ? -1 : 1
   const champfer = 0.036 * direction
-  const r = signal_lines*3.0
-  board.wire(
-    path(
-      // Nice Fillet/Chamfer
-      led0.pad("OUT"),
-      ["fillet", r, pt(led0.padX("OUT"), c.posY)], // or "chamfer"
-      c.pos,
-      ["fillet", r, pt(led1.padX("IN"), c.posY)],
-      led1.pad("IN")
-      /*
-      // Brutal Chamfer
-      pt(led0.padX("OUT"), led0.posY-r),
-      pt(led0.padX("OUT")+r, led0.posY),
-      pt(led1.padX("IN")-r, led1.posY),
-      pt(led1.padX("IN"), led1.posY+r),
-      led1.pad("IN")
-      */
-    ), trace_width
-  )
+  //const r = signal_lines*3.0
+  const r = 0.069
+  const e = 0.10  // extend to edge wires
+  const type = "fillet" // or "chamfer"
+  if (led0.altRow === led1.altRow) {
+    board.wire(
+      path(
+        // Nice Fillet/Chamfer
+        led0.pad("OUT"),
+        [type, r, pt(led0.padX("OUT"), c.posY)],
+        c.pos,
+        [type, r, pt(led1.padX("IN"), c.posY)],
+        led1.pad("IN")
+        /*
+        // Brutal Chamfer
+        pt(led0.padX("OUT"), led0.posY-r),
+        pt(led0.padX("OUT")+r, led0.posY),
+        pt(led1.padX("IN")-r, led1.posY),
+        pt(led1.padX("IN"), led1.posY+r),
+        led1.pad("IN")
+        */
+      ), trace_width
+    )
+  } else if(led0.altRow < led1.altRow) {
+    board.wire(
+      path(
+        led0.pad("OUT"),
+        [type, r, pt(c.posX+e, led0.padY("OUT"))],
+        [type, r, pt(c.posX+e, c.posY)],
+        c.pos,
+        [type, r, pt(led1.padX("IN"), c.posY)],
+        led1.pad("IN")
+      ), trace_width
+    )
+  } else {
+    board.wire(
+      path(
+        led0.pad("OUT"),
+        [type, r, pt(c.posX-e, led0.padY("OUT"))],
+        [type, r, pt(c.posX-e, c.posY)],
+        c.pos,
+        [type, r, pt(led1.padX("IN"), c.posY)],
+        led1.pad("IN"),
+      ), trace_width
+    )
+  }
 }
 
 const wire_power = function(led_prev, led, c) {
