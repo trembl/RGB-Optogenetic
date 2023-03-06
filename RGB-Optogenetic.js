@@ -40,8 +40,8 @@ let board = new PCB();
 
 let interior = path(
   pt(-0.6, 0.5),
-  pt(3.1, 0.5),
-  pt(3.1, -2.05),
+  pt(3.35, 0.5),
+  pt(3.35, -2.05),
   pt(-0.65, -2.05),
   pt(-0.65, 0.45),
 );
@@ -64,8 +64,8 @@ var c4 = board.add(C_1206, { translate: pt(mi(22.5), 0.000), rotate: 90, name: "
 var led4 = board.add(LED_RGB_WS2812B, { translate: pt(mi(27), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
 */
 var offset = {x:mi(0.0), y:mi(0.0)}
-var nr_of_LEDs = 32
-var LEDs_per_row = 9
+var nr_of_LEDs = 58
+var LEDs_per_row = 10
 var spacing = mi(9)
 var LEDs = []
 var Cs = []
@@ -126,21 +126,30 @@ board.wire(
 
 */
 const power_lines = mm_to_inch(0.57)
-const signal_lines = mm_to_inch(0.40)
+const signal_lines = mm_to_inch(0.32)
 
-const wire_out_in = function(led0, led1) {
+const wire_out_in = function(led0, led1, c) {
   const trace_width = signal_lines
   const direction = (led0.altRow) ? -1 : 1
   const champfer = 0.036 * direction
+  const r = signal_lines*3.0
   board.wire(
-    [
+    path(
+      // Nice Fillet/Chamfer
       led0.pad("OUT"),
-      pt(led0.padX("OUT"), led0.posY-champfer),
-      pt(led0.padX("OUT")+champfer, led0.posY),
-      pt(led1.padX("IN")-champfer, led1.posY),
-      pt(led1.padX("IN"), led1.posY+champfer),
+      ["fillet", r, pt(led0.padX("OUT"), c.posY)], // or "chamfer"
+      c.pos,
+      ["fillet", r, pt(led1.padX("IN"), c.posY)],
       led1.pad("IN")
-    ], trace_width
+      /*
+      // Brutal Chamfer
+      pt(led0.padX("OUT"), led0.posY-r),
+      pt(led0.padX("OUT")+r, led0.posY),
+      pt(led1.padX("IN")-r, led1.posY),
+      pt(led1.padX("IN"), led1.posY+r),
+      led1.pad("IN")
+      */
+    ), trace_width
   )
 }
 
@@ -177,7 +186,7 @@ const wire_power = function(led_prev, led, c) {
   
 }
 for (var i=1; i<nr_of_LEDs; i++) {
-  wire_out_in(LEDs[i-1], LEDs[i])
+  wire_out_in(LEDs[i-1], LEDs[i], Cs[i])
 }
 
 
@@ -185,7 +194,7 @@ for (var i=1; i<nr_of_LEDs; i++) {
 
 /* -- RENDER_PCB -- */
 const limit0 = pt(-0.75, -2.1);
-const limit1 = pt(3.15, 0.6);
+const limit1 = pt(3.4, 0.6);
 const xMin = Math.min(limit0[0], limit1[0]);
 const xMax = Math.max(limit0[0], limit1[0]);
 const yMin = Math.min(limit0[1], limit1[1]);
