@@ -64,8 +64,8 @@ var c4 = board.add(C_1206, { translate: pt(mi(22.5), 0.000), rotate: 90, name: "
 var led4 = board.add(LED_RGB_WS2812B, { translate: pt(mi(27), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
 */
 var offset = {x:mi(0.0), y:mi(0.0)}
-var nr_of_LEDs = 9
-var LEDs_per_row = 5
+var nr_of_LEDs = 31
+var LEDs_per_row = 6
 var spacing = mi(9)
 var LEDs = []
 var Cs = []
@@ -125,15 +125,15 @@ board.wire(
   ], 0.019)
 
 */
-const power_line = mm_to_inch(0.57)
-const signal_line = mm_to_inch(0.32)
+const power_line = mm_to_inch(0.60)
+const signal_line = mm_to_inch(0.40)
 
-const wire_out_in = function(led0, led1, c) {
+const createWires = function(led0, led1, c) {
   const direction = d = (led0.altRow) ? -1 : 1
   const champfer = 0.036 * direction
   //const r = signal_lines*3.0
-  const r = 0.069
-  const e = 0.10  // extend to edge wires
+  const r = 0.025
+  const e = 0.06  // extend to edge wires
   const type = "fillet" // or "chamfer"
 
   // OUT/IN Wires
@@ -155,74 +155,91 @@ const wire_out_in = function(led0, led1, c) {
   )
 
   // GND Wires
-  const gnd_y_offset = 0.07 *d
-  if (led0.altRow === led1.altRow) {
-    board.wire([
-      led0.pad("GND"),
-      pt(led0.padX("GND"), led0.padY("GND") + gnd_y_offset),
-      pt(led1.padX("GND"), led1.padY("GND") + gnd_y_offset),
-      led1.pad("GND")
-    ], power_line)
-    
-    board.wire([
-      c.pad("GND"),
-      pt(c.padX("GND"), led1.padY("GND") + gnd_y_offset),
-    ], power_line)
-  }
-
-  var gnd_x_offset = 0.28
+  const gnd_y_offset = 0.080 * d
+  const gnd_x_offset =  0.211
+  
+  var gnd_points = [
+    led0.pad("GND"),
+    pt(led0.padX("GND"), led0.padY("GND") + gnd_y_offset),
+    pt(led1.padX("GND"), led1.padY("GND") + gnd_y_offset),
+    led1.pad("GND")
+  ]
+  
+  var gnd_points2 = [
+    c.pad("GND"),
+    pt(c.padX("GND"), led1.padY("GND") + gnd_y_offset)
+  ]
+  
   if (led0.altRow !== led1.altRow) {
-    board.wire(path(
+    gnd_points = [
       pt(led0.padX("GND"), led0.padY("GND") + gnd_y_offset),
       [type, r*2, pt(led0.padX("GND")+gnd_x_offset, led0.padY("GND")+gnd_y_offset)],
       [type, r*2, pt(led1.padX("IN")+gnd_x_offset, led1.padY("GND")-gnd_y_offset)],
       pt(led1.padX("GND"), led1.padY("GND")-gnd_y_offset),
       led1.pad("GND")
-    ), power_line)
+    ]
+    gnd_points2 = [
+      c.pad("GND"),
+      pt(c.padX("GND")+0.00, led1.padY("GND")-gnd_y_offset),
+      pt(led0.padX("GND"), led1.padY("GND")-gnd_y_offset),
+    ]
+  }
     
-    board.wire([
-      c.pad("GND"),
-      pt(c.padX("GND"), led1.padY("GND")-gnd_y_offset),
-    ], power_line)
-  } 
-
-}
-
-const wire_power = function(led_prev, led, c) {
-  const trace_width = power_lines
-  const y_offset = 0.13
-  board.wire(
-    [
-      led.pad("GND"),
-      pt(led.padX("GND"), led.padY("GND") + y_offset),
-      pt(led_prev.padX("GND"), led.padY("GND") + y_offset),
-    ], trace_width
-  )
-  board.wire(
-    [
-      c.pad("GND"),
-      pt(c.padX("GND"), led.padY("GND") + y_offset),
-    ], trace_width
-  )
-  board.wire(
-    [
-      led.pad("VCC"),
-      pt(led.padX("VCC"), led.padY("VCC") - y_offset),
-      pt(led_prev.padX("VCC"), led.padY("VCC") - y_offset),
-    ], trace_width
-  )
-  board.wire(
-    [
-      c.pad("VCC"),
-      pt(c.padX("VCC"), led.padY("VCC") - y_offset),
-    ], trace_width
-  )
-
+  board.wire(path(...gnd_points), power_line)
+  board.wire([...gnd_points2], power_line)
   
+  // VCC Power Wires
+  var vcc_points = []
+  var vcc_points2 = []
+  if (led0.altRow === led1.altRow) {
+    vcc_points = [
+      led0.pad("VCC"),
+      pt(led0.padX("VCC"), led0.padY("VCC") - gnd_y_offset),
+      pt(led1.padX("VCC"), led1.padY("VCC") - gnd_y_offset),
+      led1.pad("VCC")
+    ]
+    var vcc_points2 = [
+      c.pad("VCC"),
+      pt(c.padX("VCC"), led1.padY("VCC") - gnd_y_offset),
+    ]
+  }
+  
+  if (led0.altRow < led1.altRow) {
+    vcc_points = [
+      led0.pad("VCC"),
+      pt(led0.padX("VCC"), led0.padY("VCC") - gnd_y_offset),
+      pt(led1.padX("VCC"), led1.padY("VCC") + gnd_y_offset),
+      led1.pad("VCC")
+    ]
+    var vcc_points2 = [
+      c.pad("VCC"),
+      [type, r, pt(c.padX("VCC"), led1.padY("VCC") + gnd_y_offset)],
+      pt(led1.padX("VCC"), led1.padY("VCC")+gnd_y_offset),
+    ]
+  }
+
+  if (led0.altRow > led1.altRow) {
+    vcc_points = [
+      led0.pad("VCC"),
+      pt(led0.padX("VCC"), led0.padY("VCC") - gnd_y_offset),
+      [type, r*2, pt(led1.padX("VCC")-gnd_x_offset, led0.padY("VCC")-gnd_y_offset)],
+      [type, r*2, pt(led1.padX("VCC")-gnd_x_offset, led1.padY("VCC")+gnd_y_offset)], 
+      pt(led1.padX("VCC"), led1.padY("VCC")+gnd_y_offset),
+      led1.pad("VCC")
+    ]
+    var vcc_points2 = [
+      c.pad("VCC"),
+      [type, r, pt(c.padX("VCC"), led1.padY("VCC") + gnd_y_offset)],
+      pt(led1.padX("VCC"), led1.padY("VCC")+gnd_y_offset),
+    ]
+  }
+  
+  board.wire(path(...vcc_points), power_line)
+  board.wire(path(...vcc_points2), power_line)
 }
 
 for (var i=1; i<nr_of_LEDs; i++) {
-  wire_out_in(LEDs[i-1], LEDs[i], Cs[i])
+  createWires(LEDs[i-1], LEDs[i], Cs[i])
 }
 
 
