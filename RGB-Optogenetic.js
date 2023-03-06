@@ -2,6 +2,27 @@
 const mm_to_inch = mi = inch => inch/25.4
 
 /* -- DECLARE_COMPONENTS -- */
+var XIAO = function() {
+  const s = 0.019
+  const d_pad = "M -0.06 0.03 L 0.06 0.03 L 0.06 -0.03 L -0.06 -0.03 L -0.06 0.03"
+  var d_hole = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
+  const footprints = [
+    {o:  0.3, r:["5V", "GND", "3V3", "10", "9", "8", "7"]},
+    {o: -0.3, r:["0" , "1",   "2",   "3",  "4", "5", "6"]}
+  ]
+  var i = 0, out = {}
+  footprints.forEach(function(row) {
+    var offset = 0.3
+    row.r.forEach(function(a) {
+      var pos = [row.o,offset]
+      out[a] = {"pos":pos,"shape":d_pad,"layers":["F.Cu"],"index":i++}
+      out["hole____"+a+""] = {"pos":pos,"shape":d_hole,"layers":["drill"],"index":i++}
+      offset = offset-0.1
+    })
+  })
+  return out
+}()
+
 const LED_RGB_WS2812B = function() {
   // Single Pad
   const a = 0.03 // 0.03
@@ -31,6 +52,7 @@ const C_1206_JUMP = {
 
 
 
+
 // constants
 const width = 1;
 const height = 1;
@@ -38,34 +60,31 @@ const height = 1;
 /* -- DECLARE_PCB -- */
 let board = new PCB();
 
+var interior_r = 0.39
 let interior = path(
-  pt(-0.6, 0.5),
-  pt(3.35, 0.5),
-  pt(3.35, -2.05),
-  pt(-0.65, -2.05),
-  pt(-0.65, 0.45),
-);
+  pt(-1.15, -0.58),
+  ["fillet", interior_r, pt(-1.15, 0.55)],
+  ["fillet", interior_r, pt(3.35, 0.55)],
+  ["fillet", interior_r, pt(3.35, -2.35)],
+  ["fillet", interior_r, pt(-1.15, -2.35)],
+  pt(-1.15, -1.09)
+)
+
 
 board.addShape("interior", interior);
 
 /* -- ADD_COMPONENTS -- */
+//const xiao = board.add(XIAO, { translate: pt(-0.214, 0.098), rotate: 90, name: "XIAO_RP2040" })
 
-/*
-var c1 = board.add(C_1206, { translate: pt(mi(-4.5), 0.000), rotate: 90, name: "C_1206" })
-var led1 = board.add(LED_RGB_WS2812B, { translate: pt(0, 0), rotate: 90, name: "LED_RGB_WS2812B 1" })
+board.add(C_1206_JUMP, { translate: pt(-0.45, -0.35), rotate: 90, name: "JUMP" })
+board.add(C_1206_JUMP, { translate: pt(-0.45, -0.6), rotate: 0, name: "JUMP" })
 
-var c2 = board.add(C_1206, { translate: pt(mi(4.5), 0.000), rotate: 90, name: "C_1206" })
-var led2 = board.add(LED_RGB_WS2812B, { translate: pt(mi(9), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
 
-var c3 = board.add(C_1206, { translate: pt(mi(13.5), 0.000), rotate: 90, name: "C_1206" })
-var led3 = board.add(LED_RGB_WS2812B, { translate: pt(mi(18), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
 
-var c4 = board.add(C_1206, { translate: pt(mi(22.5), 0.000), rotate: 90, name: "C_1206" })
-var led4 = board.add(LED_RGB_WS2812B, { translate: pt(mi(27), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
-*/
 var offset = {x:mi(0.0), y:mi(0.0)}
-var nr_of_LEDs = 31
-var LEDs_per_row = 6
+var nr_of_LEDs = 33
+nr_of_LEDs = Math.max(nr_of_LEDs, 2)
+var LEDs_per_row = 8
 var spacing = mi(9)
 var LEDs = []
 var Cs = []
@@ -82,7 +101,6 @@ while (LED_Array.length > 0) {
   LED_Matrix.push(a)
   i = i+1
 }
-console.log("LED_Matrix", LED_Matrix)
 
 LED_Matrix.forEach(function(row, rowNr) {
   var altRow = ((rowNr % 2) === 1) 
@@ -106,25 +124,7 @@ LED_Matrix.forEach(function(row, rowNr) {
 
 
 
-/*
-board.add(C_1206_JUMP, { translate: pt(0.176, 0.332), rotate: 90, name: "JUMP" })
-
-board.add(C_1206_JUMP, { translate: pt(0.312, 0.215), rotate: 0, name: "JUMP" })
-board.add(C_1206, { translate: pt(0.702, 0.273), rotate: 90, name: "C_1206" })
-var xiao = board.add(XIAO_RP2040, { translate: pt(-0.214, 0.098), rotate: 90, name: "XIAO_RP2040" })
-*/
-
 /* -- ADD_WIRES -- */
-/*
-board.wire(
-  [
-    xiao.pad("10"), 
-    pt(0.215, 0.117),
-    pt(0.312, 0.371),
-    led1.pad("IN")
-  ], 0.019)
-
-*/
 const power_line = mm_to_inch(0.60)
 const signal_line = mm_to_inch(0.40)
 
@@ -246,7 +246,7 @@ for (var i=1; i<nr_of_LEDs; i++) {
 
 
 /* -- RENDER_PCB -- */
-const limit0 = pt(-0.75, -2.1);
+const limit0 = pt(-1.2, -2.4);
 const limit1 = pt(3.4, 0.6);
 const xMin = Math.min(limit0[0], limit1[0]);
 const xMax = Math.max(limit0[0], limit1[0]);
