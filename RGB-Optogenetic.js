@@ -64,51 +64,41 @@ var c4 = board.add(C_1206, { translate: pt(mi(22.5), 0.000), rotate: 90, name: "
 var led4 = board.add(LED_RGB_WS2812B, { translate: pt(mi(27), 0), rotate: 90, name: "LED_RGB_WS2812B 2" })
 */
 var offset = {x:mi(0.0), y:mi(0.0)}
-var nr_of_LEDs = 5
-var LEDs_per_row = 4
+var nr_of_LEDs = 32
+var LEDs_per_row = 9
 var spacing = mi(9)
 var LEDs = []
 var Cs = []
-
 // Create Array of LEDs
 LED_Array = [...Array(nr_of_LEDs).keys()]
 
-// Re-orders LEDs 
-// -> -> ->
-// <- < <-
-// -> -> ->
 LED_Matrix = []
+var i = 0
+var lookup = [...LED_Array.slice(0, LEDs_per_row)].reverse()
 while (LED_Array.length > 0) {
   var a = LED_Array.splice(0, LEDs_per_row)
-  if (a[0] % LEDs_per_row) a = a.reverse()
+  a = a.map(x => x % LEDs_per_row)
+  if (i % 2) a = a.map(x => lookup.indexOf(x)) // reverse lookup
   LED_Matrix.push(a)
+  i = i+1
 }
+console.log("LED_Matrix", LED_Matrix)
 
-console.log(LED_Matrix)
+LED_Matrix.forEach(function(row, rowNr) {
+  var altRow = ((rowNr % 2) === 1) 
+  var rotate = altRow ? -90 : 90
+  row.forEach(function(columnNr) {
+    var x = columnNr*spacing+offset.x
+    var y = -rowNr*spacing+offset.y
+    var translate = pt(x,y)
+    board.add(LED_RGB_WS2812B, {translate, rotate, name: "LED_RGB_WS2812B"})
 
-LED_Matrix.forEach(function(row, y) {
-  var rotate = (y % 2) ? -90 : 90
-  row.forEach(function(x) {
-    console.log(x)
+    var ox = altRow ? 1 : -1
+    var x = columnNr*spacing+offset.x+(ox*mi(4.5))
+    var translate = pt(x,y)
+    board.add(C_1206, {translate, rotate, name: "C_1206"})
 
-    LEDs[i]  = board.add(
-      LED_RGB_WS2812B,
-      {
-        translate: pt(x*spacing+offset.x, -y*spacing+offset.y),
-        rotate,
-        name: "LED_RGB_WS2812B"
-      })
-      /*
-    if (i > 0) {
-      Cs[i] = board.add(
-        C_1206,
-        {
-          translate: pt(x*spacing+offset.x-mi(4.5), y*spacing+offset.y), 
-          rotate, 
-          name: "C_1206" 
-        })
-    }
-    */
+
 
   })
 })
