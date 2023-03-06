@@ -91,15 +91,16 @@ LED_Matrix.forEach(function(row, rowNr) {
     var x = columnNr*spacing+offset.x
     var y = -rowNr*spacing+offset.y
     var translate = pt(x,y)
-    board.add(LED_RGB_WS2812B, {translate, rotate, name: "LED_RGB_WS2812B"})
-
+    var led = board.add(LED_RGB_WS2812B, {translate, rotate, name: "LED_RGB_WS2812B"})
+    led.altRow = altRow
+    LEDs.push(led)
+    
     var ox = altRow ? 1 : -1
-    var x = columnNr*spacing+offset.x+(ox*mi(4.5))
+    var x = columnNr*spacing+offset.x+(ox*spacing/2)
     var translate = pt(x,y)
-    board.add(C_1206, {translate, rotate, name: "C_1206"})
-
-
-
+    var c = board.add(C_1206, {translate, rotate, name: "C_1206"})
+    c.altRow = altRow
+    Cs.push(c)
   })
 })
 
@@ -125,26 +126,27 @@ board.wire(
 
 */
 const power_lines = mm_to_inch(0.57)
-const signal_lines = mm_to_inch(0.50)
+const signal_lines = mm_to_inch(0.40)
 
-const wire_out_in = function(led_prev, led) {
+const wire_out_in = function(led0, led1) {
   const trace_width = signal_lines
-  const champfer = Math.max(0.035, 0)
+  const direction = (led0.altRow) ? -1 : 1
+  const champfer = 0.036 * direction
   board.wire(
     [
-      led_prev.pad("OUT"),
-      pt(led_prev.padX("OUT"), led_prev.posY-champfer),
-      pt(led_prev.padX("OUT")+champfer, led_prev.posY),
-      pt(led.padX("IN")-champfer, led.posY),
-      pt(led.padX("IN"), led.posY+champfer),
-      led.pad("IN")
+      led0.pad("OUT"),
+      pt(led0.padX("OUT"), led0.posY-champfer),
+      pt(led0.padX("OUT")+champfer, led0.posY),
+      pt(led1.padX("IN")-champfer, led1.posY),
+      pt(led1.padX("IN"), led1.posY+champfer),
+      led1.pad("IN")
     ], trace_width
   )
 }
 
 const wire_power = function(led_prev, led, c) {
   const trace_width = power_lines
-  const y_offset = 0.07
+  const y_offset = 0.08
   board.wire(
     [
       led.pad("GND"),
@@ -174,15 +176,8 @@ const wire_power = function(led_prev, led, c) {
 
   
 }
-if (0) {
-  wire_out_in(led1, led2)
-  wire_power(led1, led2, c2)
-  
-  wire_out_in(led2, led3)
-  wire_power(led2, led3, c3)
-  
-  wire_out_in(led3, led4)
-  wire_power(led3, led4, c4)
+for (var i=1; i<nr_of_LEDs; i++) {
+  wire_out_in(LEDs[i-1], LEDs[i])
 }
 
 
