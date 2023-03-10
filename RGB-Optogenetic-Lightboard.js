@@ -2,6 +2,7 @@
 const mm_to_inch = mi = inch => inch/25.4
 
 /* -- DECLARE_COMPONENTS -- */
+
 /*
 Modualar XIAO Footprint with variable holes
 s -> hole size
@@ -273,7 +274,7 @@ board.wire(path(
 ), power_line)
 
 // XIAO Wires
-// XIAO GND
+// XIAO VCC
 board.wire(path(
   xiao.pad("5V"),
   [type, r, pt(xiao.padX("5V"), xiao.padY("5V")-0.25)],
@@ -283,9 +284,20 @@ board.wire(path(
 // XIAO GND
 board.wire(path(
   xiao.pad("GND"),
-  [type, r, pt(xiao.padX("GND"), xiao.padY("GND")+1.72)],
-  pt(xiao.padX("GND")+0.122, xiao.padY("GND")+1.7),
+  [type, r, pt(xiao.padX("GND"), 0)],
+  [type, r, pt(xiao.padX("5V"), 0)],
+  [type, r, pt(xiao.padX("5V"), LEDs[0].padY("GND")+gnd_y_offset)],
+  pt(Cs[0].padX("GND"), LEDs[0].padY("GND")+gnd_y_offset),
 ), power_line)
+
+// XIAO SIGNAL 1
+board.wire(path(
+  xiao.pad("1"),
+  [type, r, pt(xiao.padX("1"), LEDs[0].posY)],
+  [type, r, pt(LEDs[0].padX("IN"), LEDs[0].posY)],
+  LEDs[0].pad("IN"),
+), signal_line)
+
 
 /* -- RENDER_PCB -- */
 const limit0 = pt(-b.w/2-0.1, -b.h/2-0.1);
