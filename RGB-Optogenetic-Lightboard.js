@@ -2,6 +2,35 @@
 const mm_to_inch = mi = inch => inch/25.4
 
 /* -- DECLARE_COMPONENTS -- */
+/*
+Modualar XIAO Footprint with variable holes
+s -> hole size
+d_pad -> single XIAO pad in SVG
+d_hole -> single hole in SVG, s changes size
+*/
+var XIAO = function() {
+  const s = 0.019
+  const d_pad = "M -0.06 0.03 L 0.06 0.03 L 0.06 -0.03 L -0.06 -0.03 L -0.06 0.03"
+  var d_hole = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
+  const footprints = [
+    {o:  0.3, r:["0", "1"]},           // reversed! For mounting on pin-headers on the BACK of the board!
+    {o: -0.3, r:["5V", "GND"]}
+  ]
+  var i = 0, out = {}
+  footprints.forEach(function(row) {
+    var offset = 0.3
+    row.r.forEach(function(a) {
+      var pos = [row.o,offset]
+      out[a] = {"pos":pos,"shape":d_pad,"layers":["F.Cu"],"index":i++}
+      out["___"+a+""] = {"pos":pos,"shape":d_hole,"layers":["drill"],"index":i++}
+      offset = offset-0.1
+    })
+  })
+  delete out["0"]; delete out["___0"] // delete 0 pin
+  return out
+}()
+
+
 const LED_RGB_WS2812B = function() {
   // Single Pad
   const a = 0.03 // 0.03
@@ -62,7 +91,8 @@ var offset = {
   x: -b.w/2 + b.a1_column_offset, 
   y: b.h/2 - b.a1_row_offset
 }
-var nr_of_LEDs = 25 
+
+var nr_of_LEDs =  77 
 nr_of_LEDs = Math.max(nr_of_LEDs, 2)
 var LEDs_per_row = 12
 var spacing = mi(9)
@@ -102,6 +132,8 @@ LED_Matrix.forEach(function(row, rowNr) {
   })
 })
 
+// Add Minimal XIAO
+const xiao = board.add(XIAO, {translate: pt(-b.w/2+ 0.393, 0), rotate: 90, name: "XAIO"})
 
 
 /* -- ADD_WIRES -- */
@@ -140,8 +172,6 @@ const createWires = function(led0, led1, c) {
   )
 
   // GND Wires
-
-  
   var gnd_points = [
     led0.pad("GND"),
     pt(led0.padX("GND"), led0.padY("GND") + gyo),
@@ -242,9 +272,20 @@ board.wire(path(
   pt(Cs[0].padX("VCC"), LEDs[0].padY("VCC")-gnd_y_offset),
 ), power_line)
 
+// XIAO Wires
+// XIAO GND
+board.wire(path(
+  xiao.pad("5V"),
+  [type, r, pt(xiao.padX("5V"), xiao.padY("5V")-0.25)],
+  pt(xiao.padX("5V")+0.175, xiao.padY("5V")-0.25),
+), power_line)
 
-const gnd_to_xiao_x = LEDs[0].padX("VCC")-gnd_x_offset-mi(2.00)
-
+// XIAO GND
+board.wire(path(
+  xiao.pad("GND"),
+  [type, r, pt(xiao.padX("GND"), xiao.padY("GND")+1.72)],
+  pt(xiao.padX("GND")+0.122, xiao.padY("GND")+1.7),
+), power_line)
 
 /* -- RENDER_PCB -- */
 const limit0 = pt(-b.w/2-0.1, -b.h/2-0.1);
