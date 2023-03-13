@@ -32,6 +32,32 @@ var XIAO = function() {
 }()
 
 
+// Single Drill Hole
+const Drill_Hole = function(d = mi(0.99)) {
+  var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
+  return {
+    hole: {"pos":[0,0],"shape":d_hole,"layers":["drill"]}
+  }  
+}()
+
+// Through-Hole Power Pads 
+const Power_Pads = function() {
+  var d = d = mi(0.74)
+  var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
+  const s = 0.052
+  const d_pad = `M -${s} ${s} L ${s} ${s} L ${s} -${s} L -${s} -${s} L -${s} ${s}`
+  const dist = 0.100
+  return {
+    VCC: {"pos":[0, -dist],"shape":d_pad,"layers":["F.Cu"]},
+    VCC_hole: {"pos":[0, -dist],"shape":d_hole,"layers":["drill"]},
+    GND: {"pos":[0, dist],"shape":d_pad,"layers":["F.Cu"]},
+    GND_hole: {"pos":[0, dist],"shape":d_hole,"layers":["drill"]}
+  }  
+}()
+
+
+
+// LED_RGB_WS2812B
 const LED_RGB_WS2812B = function() {
   // Single Pad
   const a = 0.03 // 0.03
@@ -93,7 +119,7 @@ var offset = {
   y: b.h/2 - b.a1_row_offset
 }
 
-var nr_of_LEDs =  77 
+var nr_of_LEDs = 96 
 nr_of_LEDs = Math.max(nr_of_LEDs, 2)
 var LEDs_per_row = 12
 var spacing = mi(9)
@@ -135,6 +161,32 @@ LED_Matrix.forEach(function(row, rowNr) {
 
 // Add Minimal XIAO
 const xiao = board.add(XIAO, {translate: pt(-b.w/2+ 0.393, 0), rotate: 90, name: "XAIO"})
+
+const vcc_jumper = board.add(C_1206_JUMP, {translate: pt(-b.w/2+ 0.170, -0.550), rotate: 0, name: "XAIO"})
+
+
+// Add Mounting Holes
+var m = {offset:mi(3.00)}
+m.x1 = -b.w/2+b.wall+m.offset
+m.x2 = b.w/2-b.wall-m.offset
+m.y1 = -b.h/2+b.wall+m.offset
+m.y2 = b.h/2-b.wall-m.offset
+const mh1 = board.add(Drill_Hole, {translate: pt(m.x1, m.y1)})
+const mh2 = board.add(Drill_Hole, {translate: pt(m.x2, m.y1)})
+const mh3 = board.add(Drill_Hole, {translate: pt(m.x2, m.y2)})
+const mh4 = board.add(Drill_Hole, {translate: pt(m.x1, m.y2)})
+
+// Add additional 5V Power Pads
+const pp = board.add(Power_Pads, {translate: pt(-2.35, -1.25)})
+
+
+
+
+
+
+
+
+
 
 
 /* -- ADD_WIRES -- */
