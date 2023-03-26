@@ -1,10 +1,10 @@
-/* -- HELPER FUNCTIONS -- */
+22/* -- HELPER FUNCTIONS -- */
 const mm_to_inch = mi = inch => inch/25.4
 
 /* -- DECLARE_COMPONENTS -- */
 
 /*
-Modualar XIAO Footprint with variable holes
+Modular XIAO Footprint with variable holes
 s -> hole size
 d_pad -> single XIAO pad in SVG
 d_hole -> single hole in SVG, s changes size
@@ -40,9 +40,10 @@ const Drill_Hole = function(d = mi(0.99)) {
   }  
 }()
 
+
 // Through-Hole Power Pads 
 const Power_Pads = function() {
-  var d = d = mi(0.74)
+  var d = mi(0.74)
   var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
   const s = 0.052
   const d_pad = `M -${s} ${s} L ${s} ${s} L ${s} -${s} L -${s} -${s} L -${s} ${s}`
@@ -55,6 +56,17 @@ const Power_Pads = function() {
   }  
 }()
 
+// Single Round Through-Hole Pad
+const Single_Pad = function() {
+  var d = mi(0.74)
+  var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
+  const s = d * 2
+  var d_pad = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
+  return {
+    Sig: {"pos":[0, 0],"shape":d_pad,"layers":["F.Cu"]},
+    Sig_hole: {"pos":[0, 0],"shape":d_hole,"layers":["drill"]},
+  }  
+}()
 
 
 // LED_RGB_WS2812B
@@ -62,12 +74,13 @@ const LED_RGB_WS2812B = function() {
   // Single Pad
   const a = 0.03 // 0.03
   const b = 0.018 // 0.18
-  const f = 0.004 // 0.004
+  const f = 0.018 // 0.004 // angle
   // Pad Positions
   const x = 0.0964 // 0.0964
   const y = 0.0649 // 0.0649
-  const LED_PAD_SHAPE = `M ${-a} ${b} L ${a} ${b} L ${a} ${-b} L ${-a} ${-b} L ${-a} ${b}`
-  const LED_PAD_SHAPE_ANGLE = `M ${-a} ${b} L ${a} ${b} L ${a} ${-f} L ${a-b+f} ${-b} L ${-a} ${-b} L ${-a} ${b}`
+  const LED_PAD_SHAPE =       `M ${-a} ${b} L ${a} ${b} L ${a} ${-b} L ${-a} ${-b} L ${-a} ${b}`
+  const LED_PAD_SHAPE_ANGLE = `M ${-a} ${b} L ${a} ${b} L ${a} ${-b} L ${-a} ${-b} L ${-a} ${b-f} L ${-a+f} ${b} `
+  
   return {
     "VCC":{"alias": 1,"pos":[-x,y],"shape": LED_PAD_SHAPE,"layers":["F.Cu"]},
     "OUT":{"alias": 2,"pos":[-x,-y],"shape":LED_PAD_SHAPE,"layers":["F.Cu"]},
@@ -91,15 +104,19 @@ let board = new PCB();
 
 // Board Size, Standard 96-Well Size
 const b = {
-  wall: mi(1.0),              // ?
-  r: mi(2.00),                // ?
-  a1_row_offset: mi(11.24),   // 11.24
-  a1_column_offset: mi(14.38), // 14.38
-  w: mi(127.76),              // 127.76 
-  h: mi(85.48)                // 85.48
+  wall: mi(2.0),               // offset to make board fit within 96 well
+  r: mi(3.0),                  // 3mm is ok
+  a1_row_offset: mi(11.24),    // 11.24  - from 96 spec
+  a1_column_offset: mi(14.38), // 14.38  - from 96 spec
+  w: mi(127.76),               // 127.76 - from 96 spec
+  h: mi(85.48)                 // 85.48  - from 96 spec
 }
-iw = b.w -b.wall*2
-ih = mi(85.48)-b.wall*2
+iw = b.w - b.wall*2
+ih = b.h - b.wall*2
+
+// Output Size of the Board
+// iw = 123.76, ih = 81.48
+console.log("width: ", iw, "height: ", iw)
 
 // Interior
 let interior = path(
@@ -160,26 +177,28 @@ LED_Matrix.forEach(function(row, rowNr) {
 })
 
 // Add Minimal XIAO
-const xiao = board.add(XIAO, {translate: pt(-b.w/2+ 0.393, 0), rotate: 90, name: "XAIO"})
-
-const vcc_jumper = board.add(C_1206_JUMP, {translate: pt(-b.w/2+ 0.170, -0.550), rotate: 0, name: "XAIO"})
+//const xiao = board.add(XIAO, {translate: pt(-b.w/2+ 0.393, 0), rotate: 90, name: "XAIO"})
+//const vcc_jumper = board.add(C_1206_JUMP, {translate: pt(-b.w/2+ 0.170, -0.550), rotate: 0, name: "XAIO"})
 
 
 // Add Mounting Holes
-var m = {offset:mi(3.00)}
+var m = {offset:mi(2.50)}
 m.x1 = -b.w/2+b.wall+m.offset
 m.x2 = b.w/2-b.wall-m.offset
 m.y1 = -b.h/2+b.wall+m.offset
 m.y2 = b.h/2-b.wall-m.offset
 const mh1 = board.add(Drill_Hole, {translate: pt(m.x1, m.y1)})
+const mh15 = board.add(Drill_Hole, {translate: pt(0, m.y2)})
 const mh2 = board.add(Drill_Hole, {translate: pt(m.x2, m.y1)})
+const mh25 = board.add(Drill_Hole, {translate: pt(m.x2, 0)})
 const mh3 = board.add(Drill_Hole, {translate: pt(m.x2, m.y2)})
+const mh35 = board.add(Drill_Hole, {translate: pt(0, -m.y2)})
 const mh4 = board.add(Drill_Hole, {translate: pt(m.x1, m.y2)})
 
+
 // Add additional 5V Power Pads
-const pp = board.add(Power_Pads, {translate: pt(-2.35, -1.25)})
-
-
+const pp = board.add(Power_Pads, {translate: pt(-2.35, mi(-20.00))})
+const sp = board.add(Single_Pad, {translate: pt(-2.35, mi(20.00))})
 
 
 
@@ -196,9 +215,9 @@ const signal_line = mm_to_inch(0.50)
 const gnd_y_offset = 0.080
 const gnd_x_offset = mi(6.00)
 
-const r = 0.033
+const r = 0.033 // 0.033
 const e = mi(1.69)  // extend to edge wires
-const type = "fillet" // or "chamfer"
+const type = "fillet" // or "fillet", "chamfer"
 
 const createWires = function(led0, led1, c) {
   const direction = d = (led0.altRow) ? -1 : 1
@@ -309,6 +328,8 @@ for (var i=1; i<nr_of_LEDs; i++) {
   createWires(LEDs[i-1], LEDs[i], Cs[i])
 }
 
+
+
 // Manual Wires
 // GND
 board.wire(path(
@@ -325,30 +346,36 @@ board.wire(path(
   pt(Cs[0].padX("VCC"), LEDs[0].padY("VCC")-gnd_y_offset),
 ), power_line)
 
-// XIAO Wires
-// XIAO VCC
+
+
+
+
+
+// Signal Wires
+
+// Power VCC
 board.wire(path(
-  xiao.pad("5V"),
-  [type, r, pt(xiao.padX("5V"), xiao.padY("5V")-0.25)],
-  pt(xiao.padX("5V")+0.175, xiao.padY("5V")-0.25),
+  pp.pad("VCC"),
+  [type, r*5, pt(pp.padX("VCC"), LEDs[95].padY("GND")-gnd_y_offset)],
+  pt(LEDs[95].padX("GND"), LEDs[95].padY("GND")-gnd_y_offset),
 ), power_line)
 
-// XIAO GND
+// Power GND
 board.wire(path(
-  xiao.pad("GND"),
-  [type, r, pt(xiao.padX("GND"), 0)],
-  [type, r, pt(xiao.padX("5V"), 0)],
-  [type, r, pt(xiao.padX("5V"), LEDs[0].padY("GND")+gnd_y_offset)],
-  pt(Cs[0].padX("GND"), LEDs[0].padY("GND")+gnd_y_offset),
-), power_line)
+  pp.pad("GND"),
+  pt(pp.padX("GND")+gnd_y_offset, pp.padY("GND"))
+), power_line*2)
 
-// XIAO SIGNAL 1
+// SIGNAL 1
 board.wire(path(
-  xiao.pad("1"),
-  [type, r, pt(xiao.padX("1"), LEDs[0].posY)],
+  sp.pad("Sig"),
+  [type, r, pt(sp.padX("Sig"), LEDs[0].posY)],
   [type, r, pt(LEDs[0].padX("IN"), LEDs[0].posY)],
-  LEDs[0].pad("IN"),
+  LEDs[0].pad("IN")
 ), signal_line)
+
+
+
 
 
 /* -- RENDER_PCB -- */
@@ -364,9 +391,9 @@ renderPCB({
   layerColors: {
     "interior": "#313030ff",
     //"B.Cu": "#ff4c007f",
-    "F.Cu": "#ff8c00cc",
-    "drill": "#ee00ffe5",
-    "padLabels": "#ffff99e5",
+    "F.Cu": "#ff9500cc",
+    "drill": "#000000e5",
+    //"padLabels": "#ffff99e5",
     //"componentLabels": "#00e5e5e5",
   },
   limits: {
