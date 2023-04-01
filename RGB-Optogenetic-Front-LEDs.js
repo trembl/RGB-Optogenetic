@@ -46,12 +46,13 @@ const Power_Pads = function() {
   var d = mi(0.74)
   var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
   const s = 0.052
-  const d_pad = `M -${s} ${s} L ${s} ${s} L ${s} -${s} L -${s} -${s} L -${s} ${s}`
+  const d_square = `M -${s} ${s} L ${s} ${s} L ${s} -${s} L -${s} -${s} L -${s} ${s}`
+  const d_round = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
   const dist = 0.100
   return {
-    VCC: {"pos":[0, -dist],"shape":d_pad,"layers":["F.Cu"]},
+    VCC: {"pos":[0, -dist],"shape":d_round,"layers":["F.Cu"]},
     VCC_hole: {"pos":[0, -dist],"shape":d_hole,"layers":["drill"]},
-    GND: {"pos":[0, dist],"shape":d_pad,"layers":["F.Cu"]},
+    GND: {"pos":[0, dist],"shape":d_square,"layers":["F.Cu"]},
     GND_hole: {"pos":[0, dist],"shape":d_hole,"layers":["drill"]}
   }  
 }()
@@ -197,8 +198,9 @@ const mh4 = board.add(Drill_Hole, {translate: pt(m.x1, m.y2)})
 
 
 // Add additional 5V Power Pads
-const pp = board.add(Power_Pads, {translate: pt(-2.35, mi(-20.00))})
-const sp = board.add(Single_Pad, {translate: pt(-2.35, mi(20.00))})
+const distance = 0.55 // default 0.55
+const pp = board.add(Power_Pads, {translate: pt(-2.35, -distance)})
+const sp = board.add(Single_Pad, {translate: pt(-2.35, distance)})
 
 
 
@@ -371,7 +373,7 @@ board.wire(path(
   sp.pad("Sig"),
   [type, r, pt(sp.padX("Sig"), LEDs[0].posY)],
   [type, r, pt(LEDs[0].padX("IN"), LEDs[0].posY)],
-  LEDs[0].pad("IN")
+  LEDs[0].pad("IN"),
 ), signal_line)
 
 
@@ -389,10 +391,10 @@ const yMax = Math.max(limit0[1], limit1[1]);
 renderPCB({
   pcb: board,
   layerColors: {
-    "interior": "#313030ff",
+    //"interior": "#000000ff",
     //"B.Cu": "#ff4c007f",
-    "F.Cu": "#ff9500cc",
-    "drill": "#000000e5",
+    "F.Cu": "#ff00ffb7",
+    "drill": "#000000ff",
     //"padLabels": "#ffff99e5",
     //"componentLabels": "#00e5e5e5",
   },
