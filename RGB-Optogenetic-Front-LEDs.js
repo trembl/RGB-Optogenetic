@@ -1,3 +1,4 @@
+// @version: v0.0.1
 22/* -- HELPER FUNCTIONS -- */
 const mm_to_inch = mi = inch => inch/25.4
 
@@ -198,9 +199,9 @@ const mh4 = board.add(Drill_Hole, {translate: pt(m.x1, m.y2)})
 
 
 // Add additional 5V Power Pads
-const distance = 0.55 // default 0.55
-const pp = board.add(Power_Pads, {translate: pt(-2.35, -distance)})
-const sp = board.add(Single_Pad, {translate: pt(-2.35, distance)})
+const distance = 0.60 // default 0.60
+const pp = board.add(Power_Pads, {translate: pt(-iw/2+mi(2.19), -distance)}) // -2.35
+const sp = board.add(Single_Pad, {translate: pt(-iw/2+mi(2.19), distance)})
 
 
 
@@ -212,13 +213,13 @@ const sp = board.add(Single_Pad, {translate: pt(-2.35, distance)})
 
 /* -- ADD_WIRES -- */
 const power_line = mm_to_inch(0.75)
-const signal_line = mm_to_inch(0.50)
+const signal_line = mm_to_inch(0.40) // 0.50
 
-const gnd_y_offset = 0.080
-const gnd_x_offset = mi(6.00)
+const gnd_y_offset = 0.080 // 0.080
+const gnd_x_offset = mi(6.00) // 6.00
 
 const r = 0.033 // 0.033
-const e = mi(1.69)  // extend to edge wires
+const e = mi(1.69)  // 1.69 extend to edge wires
 const type = "fillet" // or "fillet", "chamfer"
 
 const createWires = function(led0, led1, c) {
@@ -373,7 +374,7 @@ board.wire(path(
   sp.pad("Sig"),
   [type, r, pt(sp.padX("Sig"), LEDs[0].posY)],
   [type, r, pt(LEDs[0].padX("IN"), LEDs[0].posY)],
-  LEDs[0].pad("IN"),
+  LEDs[0].pad("IN")
 ), signal_line)
 
 
@@ -391,10 +392,10 @@ const yMax = Math.max(limit0[1], limit1[1]);
 renderPCB({
   pcb: board,
   layerColors: {
-    //"interior": "#000000ff",
-    //"B.Cu": "#ff4c007f",
+    "interior": "#00000026",
+    "B.Cu": "#ff4c007f",
     "F.Cu": "#ff00ffb7",
-    "drill": "#000000ff",
+    //"drill": "#000000ff",
     //"padLabels": "#ffff99e5",
     //"componentLabels": "#00e5e5e5",
   },
