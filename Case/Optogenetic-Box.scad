@@ -37,7 +37,7 @@ module dot() {
 // OuterBox
 a = 127.76;
 b = 85.48;
-h = 10;
+h = 8;
 r = 2;
 dotH = 2;
 
@@ -74,10 +74,10 @@ difference() {
       roundedBox([a-2, b-2, h, r], "green");
     }
   }
-  translate([-51, 0, 3])
+  translate([-51, 0, 2])
     cube([26,45,h], center = true);
-  translate([0, 0, 8])
-    cube([80,20,h], center = true);
+  translate([0, 0, 2])
+    cube([90,60,h], center = true);
 }
 
 
