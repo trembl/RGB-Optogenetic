@@ -29,7 +29,7 @@ module roundedBox(dim, c) {
 
 module dot() {
   color("yellow") {
-    cylinder (h=10, r=0.5, center=true);
+    cylinder (h=8, r=2.5, center=true);
   }
 }
 
@@ -39,28 +39,37 @@ a = 127.76;
 b = 85.48;
 h = 8;
 r = 2;
-dotH = 2;
+dotH = 0.5;
 
-translate([-a/2+r*2,-b/2+r*2,dotH]) {
-  dot();
-}
-translate([a/2-r*2,-b/2+r*2,dotH]) {
-  dot();
-}
-translate([a/2-r*2,b/2-r*2,dotH]) {
-  dot();
-}
-translate([-a/2+r*2,b/2-r*2,dotH]) {
-  dot();
-}
-translate([0,b/2-r*2,dotH]) {
-  dot();
-}
-translate([0,-b/2+r*2,dotH]) {
-  dot();
-}
-translate([a/2-r*2,0,dotH]) {
-  dot();
+/*
+m.x1 = -b.w/2+b.wall+m.offset
+m.x2 = b.w/2-b.wall-m.offset
+m.y1 = -b.h/2+b.wall+m.offset
+m.y2 = b.h/2-b.wall-m.offset
+*/
+
+translate([0,0,1+dotH]) {
+  translate([-a/2,-b/2,0]) {
+    dot();
+  }
+  translate([a/2-r*2,-b/2+r*2,0]) {
+    dot();
+  }
+  translate([a/2-r*2,b/2-r*2,0]) {
+    dot();
+  }
+  translate([-a/2+r*2,b/2-r*2,0]) {
+    dot();
+  }
+  translate([0,b/2-r*2,0]) {
+    dot();
+  }
+  translate([0,-b/2+r*2,0]) {
+    dot();
+  }
+  translate([a/2-r*2,0,0]) {
+    dot();
+  }
 }
 
 
@@ -75,10 +84,16 @@ difference() {
     }
   }
   translate([-51, 0, 2])
-    cube([26,45,h], center = true);
+    cube([30,60,h], center = true);
   translate([0, 0, 2])
-    cube([90,60,h], center = true);
+    cube([110,70,h], center = true);
 }
 
 
+translate([0,0,1]) {
+  rotate(45)
+  cube([2,105,8], center = true);
+  rotate(135)
+  cube([2,105,8], center = true);
+}
 
