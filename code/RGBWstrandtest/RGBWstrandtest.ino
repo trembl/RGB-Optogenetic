@@ -5,7 +5,7 @@
 
 #define LED_PIN D3
 #define LED_COUNT 8
-#define BRIGHTNESS 25 // Set BRIGHTNESS to about 1/5 (max = 255)
+#define BRIGHTNESS 10 // Set BRIGHTNESS to about 1/5 (max = 255)
 
 // Declare our NeoPixel strip object:
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRBW + NEO_KHZ800);
