@@ -1,4 +1,4 @@
-// @version: v0.0.1
+// @version: v0.1.0
 22/* -- HELPER FUNCTIONS -- */
 const mm_to_inch = mi = inch => inch/25.4
 
@@ -34,8 +34,9 @@ var XIAO = function() {
 
 
 // Single Drill Hole
-const Drill_Hole = function(d = mi(0.99)) {
-  var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
+const Drill_Hole = function() {
+  var r = mi(2.50) // 2.5
+  var d_hole = `M -${r} 0 A ${r} ${r} 90 0 0 ${r} 0 A ${r} ${r} 90 0 0 ${r} 0 A ${r} ${r} 90 0 0 -${r} 0`
   return {
     hole: {"pos":[0,0],"shape":d_hole,"layers":["drill"]}
   }  
@@ -44,25 +45,25 @@ const Drill_Hole = function(d = mi(0.99)) {
 
 // Through-Hole Power Pads 
 const Power_Pads = function() {
-  var d = mi(0.74)
+  var d = mi(0.4) // 0.4
   var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
-  const s = 0.052
+  const s = mi(1.25) // 1.0
   const d_square = `M -${s} ${s} L ${s} ${s} L ${s} -${s} L -${s} -${s} L -${s} ${s}`
   const d_round = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
   const dist = 0.100
   return {
-    VCC: {"pos":[0, -dist],"shape":d_round,"layers":["F.Cu"]},
-    VCC_hole: {"pos":[0, -dist],"shape":d_hole,"layers":["drill"]},
-    GND: {"pos":[0, dist],"shape":d_square,"layers":["F.Cu"]},
-    GND_hole: {"pos":[0, dist],"shape":d_hole,"layers":["drill"]}
+    GND: {"pos":[0, -dist],"shape":d_round,"layers":["F.Cu"]},
+    GND_hole: {"pos":[0, -dist],"shape":d_hole,"layers":["drill"]},
+    VCC: {"pos":[0, dist],"shape":d_square,"layers":["F.Cu"]},
+    VCC_hole: {"pos":[0, dist],"shape":d_hole,"layers":["drill"]}
   }  
 }()
 
 // Single Round Through-Hole Pad
 const Single_Pad = function() {
-  var d = mi(0.74)
+  var d = mi(0.4) // 0.4
   var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
-  const s = d * 2
+  const s = mi(1.25) // 1.0
   var d_pad = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
   return {
     Sig: {"pos":[0, 0],"shape":d_pad,"layers":["F.Cu"]},
@@ -71,18 +72,17 @@ const Single_Pad = function() {
 }()
 
 
-// LED_RGB_WS2812B
-const LED_RGB_WS2812B = function() {
+// LED_RGB_5050
+const LED_RGB_5050 = function() {
   // Single Pad
-  const a = 0.03 // 0.03
-  const b = 0.018 // 0.18
-  const f = 0.018 // 0.004 // angle
+  const a = 0.035 // 0.030
+  const b = 0.035 // 0.180
+  const f = 0.035 // 0.004 // angle
   // Pad Positions
   const x = 0.0964 // 0.0964
   const y = 0.0649 // 0.0649
   const LED_PAD_SHAPE =       `M ${-a} ${b} L ${a} ${b} L ${a} ${-b} L ${-a} ${-b} L ${-a} ${b}`
   const LED_PAD_SHAPE_ANGLE = `M ${-a} ${b} L ${a} ${b} L ${a} ${-b} L ${-a} ${-b} L ${-a} ${b-f} L ${-a+f} ${b} `
-  
   return {
     "VCC":{"alias": 1,"pos":[-x,y],"shape": LED_PAD_SHAPE,"layers":["F.Cu"]},
     "OUT":{"alias": 2,"pos":[-x,-y],"shape":LED_PAD_SHAPE,"layers":["F.Cu"]},
@@ -90,6 +90,27 @@ const LED_RGB_WS2812B = function() {
     "IN":{"alias": 4,"pos":[x,y], "shape":LED_PAD_SHAPE,"layers":["F.Cu"]}
   }
 }()
+
+// LED_RGB_3535
+const LED_RGB_3535 = function() {
+  // Single Pad
+  const a = 0.035 // 0.035
+  const b = 0.030 // 0.030
+  const f = 0.030 // 0.030 // angle
+  // Pad Positions
+  const x = 0.0639 // 0.0964
+  const y = 0.0474 // 0.0649
+  const LED_PAD_SHAPE =       `M ${-a} ${b} L ${a} ${b} L ${a} ${-b} L ${-a} ${-b} L ${-a} ${b}`
+  const LED_PAD_SHAPE_ANGLE = `M ${-a} ${b} L ${a} ${b} L ${a} ${-b} L ${-a} ${-b} L ${-a} ${b-f} L ${-a+f} ${b} `
+  const d = 0.00
+  return {
+    "VCC":{"alias": 1,"pos":[-x+d,y],"shape": LED_PAD_SHAPE,"layers":["F.Cu"]},
+    "OUT":{"alias": 2,"pos":[-x,-y],"shape":LED_PAD_SHAPE,"layers":["F.Cu"]},
+    "GND":{"alias": 3, "pos":[x,-y],"shape":LED_PAD_SHAPE_ANGLE,"layers":["F.Cu"]},
+    "IN":{"alias": 4,"pos":[x,y], "shape":LED_PAD_SHAPE,"layers":["F.Cu"]}
+  }
+}()
+
 
 const C_1206 = {
   "VCC":{"shape":"M -0.032,0.034L 0.032,0.034L 0.032,-0.034L -0.032,-0.034L -0.032,0.034","pos":[-0.06,0],"layers":["F.Cu"],"index":1},
@@ -99,6 +120,16 @@ const C_1206_JUMP = {
   "0":{"shape":"M -0.032,0.034L 0.032,0.034L 0.032,-0.034L -0.032,-0.034L -0.032,0.034","pos":[-0.06,0],"layers":["F.Cu"],"index":1},
   "1":{"shape":"M -0.032,0.034L 0.032,0.034L 0.032,-0.034L -0.032,-0.034L -0.032,0.034","pos":[0.06,0],"layers":["F.Cu"],"index":2}
 }
+const C_1206_PARAMETRIC = function() {
+  const w = 0.030 // 0.034 // 0.030
+  const h = 0.030 // 0.032 // 0.030
+  const shape = `M -${h},${w}L ${h},${w}L ${h},-${w}L -${h},-${w}L -${h},${w}`
+  //const shape = "M -0.032,0.034L 0.032,0.034L 0.032,-0.034L -0.032,-0.034L -0.032,0.034"
+  return {
+    "VCC":{"shape":shape, "pos":[-0.06,0], "layers":["F.Cu"], "index":1},
+    "GND":{"shape":shape, "pos":[0.06,0], "layers":["F.Cu"], "index":2}
+  }
+}()
 
 
 /* -- DECLARE_PCB -- */
@@ -141,7 +172,7 @@ var offset = {
 var nr_of_LEDs = 96 
 nr_of_LEDs = Math.max(nr_of_LEDs, 2)
 var LEDs_per_row = 12
-var spacing = mi(9)
+var spacing = mi(9) // 9
 var LEDs = []
 var Cs = []
 
@@ -166,13 +197,13 @@ LED_Matrix.forEach(function(row, rowNr) {
     var x = columnNr*spacing+offset.x
     var y = -rowNr*spacing+offset.y
     var translate = pt(x,y)
-    var led = board.add(LED_RGB_WS2812B, {translate, rotate, name: "LED_RGB_WS2812B"})
+    var led = board.add(LED_RGB_5050, {translate, rotate, name: "LED_RGB_5050"})
     led.altRow = altRow
     LEDs.push(led)
     var ox = altRow ? 1 : -1
     var x = columnNr*spacing+offset.x+(ox*spacing/2)
     var translate = pt(x,y)
-    var c = board.add(C_1206, {translate, rotate, name: "C_1206"})
+    var c = board.add(C_1206_PARAMETRIC, {translate, rotate, name: "C_1206"})
     c.altRow = altRow
     Cs.push(c)
   })
@@ -184,7 +215,7 @@ LED_Matrix.forEach(function(row, rowNr) {
 
 
 // Add Mounting Holes
-var m = {offset:mi(2.50)}
+var m = {offset:mi(0.00)}
 m.x1 = -b.w/2+b.wall+m.offset
 m.x2 = b.w/2-b.wall-m.offset
 m.y1 = -b.h/2+b.wall+m.offset
@@ -199,23 +230,17 @@ const mh4 = board.add(Drill_Hole, {translate: pt(m.x1, m.y2)})
 
 
 // Add additional 5V Power Pads
-const distance = 0.60 // default 0.60
+const distance = mi(25.0) // 25.0
 const pp = board.add(Power_Pads, {translate: pt(-iw/2+mi(2.19), -distance)}) // -2.35
 const sp = board.add(Single_Pad, {translate: pt(-iw/2+mi(2.19), distance)})
-
-
-
-
-
-
-
-
 
 /* -- ADD_WIRES -- */
 const power_line = mm_to_inch(0.75)
 const signal_line = mm_to_inch(0.40) // 0.50
 
-const gnd_y_offset = 0.080 // 0.080
+// power lines offest
+const gnd_y_offset = 0.080 // 0.080 -> 5050
+//const gnd_y_offset = 0.112 // 0.080 -> 3535
 const gnd_x_offset = mi(6.00) // 6.00
 
 const r = 0.033 // 0.033
@@ -227,7 +252,6 @@ const createWires = function(led0, led1, c) {
   const gyo = gnd_y_offset * d
   //const r = signal_lines*3.0
  
-
   // OUT/IN Wires
   var points = [[type, r, pt(led0.padX("OUT"), c.posY)]]
   if (led0.altRow !== led1.altRow) {
@@ -333,7 +357,7 @@ for (var i=1; i<nr_of_LEDs; i++) {
 
 
 
-// Manual Wires
+// Manual Power Wires
 // GND
 board.wire(path(
   LEDs[0].pad("GND"),
@@ -342,7 +366,6 @@ board.wire(path(
   Cs[0].pad("GND"),
 ), power_line)
 
-
 //VCC
 board.wire(path(
   Cs[0].pad("VCC"),
@@ -350,24 +373,19 @@ board.wire(path(
 ), power_line)
 
 
-
-
-
-
-// Signal Wires
+// Manual Signal Wires
+// Power GND
+board.wire(path(
+  pp.pad("GND"),
+  [type, r*5, pt(pp.padX("GND"), LEDs[95].padY("GND")-gnd_y_offset)],
+  pt(LEDs[95].padX("GND"), LEDs[95].padY("GND")-gnd_y_offset),
+), power_line)
 
 // Power VCC
 board.wire(path(
   pp.pad("VCC"),
-  [type, r*5, pt(pp.padX("VCC"), LEDs[95].padY("GND")-gnd_y_offset)],
-  pt(LEDs[95].padX("GND"), LEDs[95].padY("GND")-gnd_y_offset),
+  pt(pp.padX("VCC")+gnd_y_offset, pp.padY("VCC"))
 ), power_line)
-
-// Power GND
-board.wire(path(
-  pp.pad("GND"),
-  pt(pp.padX("GND")+gnd_y_offset, pp.padY("GND"))
-), power_line*2)
 
 // SIGNAL 1
 board.wire(path(
@@ -392,10 +410,10 @@ const yMax = Math.max(limit0[1], limit1[1]);
 renderPCB({
   pcb: board,
   layerColors: {
-    "interior": "#00000026",
-    "B.Cu": "#ff4c007f",
+    "interior": "#e6e6e6ef",
+    //"B.Cu": "#ff4c007f",
     "F.Cu": "#ff00ffb7",
-    //"drill": "#000000ff",
+    "drill": "#78ff0aff",
     //"padLabels": "#ffff99e5",
     //"componentLabels": "#00e5e5e5",
   },

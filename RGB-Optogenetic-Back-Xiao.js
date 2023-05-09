@@ -1,4 +1,4 @@
-// @version: v0.0.1
+// @version: v0.1.0
 22/* -- HELPER FUNCTIONS -- */
 const mm_to_inch = mi = inch => inch/25.4
 
@@ -45,29 +45,41 @@ const Drill_Hole = function(d = mi(0.99)) {
 
 // Through-Hole Power Pads 
 const Mirrored_Power_Pads = function() {
-  var d = mi(0.74)
+  var d = mi(0.4) // 0.4
   var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
-  const s = 0.052
+  const s = mi(1.25) // 1.0
   const d_square = `M -${s} ${s} L ${s} ${s} L ${s} -${s} L -${s} -${s} L -${s} ${s}`
   const d_round = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
   const dist = 0.100
   return {
-    VCC: {"pos":[0, dist],"shape":d_round,"layers":["F.Cu"]},
-    VCC_hole: {"pos":[0, dist],"shape":d_hole,"layers":["drill"]},
-    GND: {"pos":[0, -dist],"shape":d_square,"layers":["F.Cu"]},
-    GND_hole: {"pos":[0, -dist],"shape":d_hole,"layers":["drill"]}
+    GND: {"pos":[0, dist],"shape":d_round,"layers":["F.Cu"]},
+    GND_hole: {"pos":[0, dist],"shape":d_hole,"layers":["drill"]},
+    VCC: {"pos":[0, -dist],"shape":d_square,"layers":["F.Cu"]},
+    VCC_hole: {"pos":[0, -dist],"shape":d_hole,"layers":["drill"]}
   }  
 }()
 
 // Single Round Through-Hole Pad
 const Single_Pad = function() {
-  var d = mi(0.74) // 0.74
+  var d = mi(0.4) // 0.4
   var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
-  const s = d * 2
+  const s = mi(1.25) // 1.0
   var d_pad = `M -${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 ${s} 0 A ${s} ${s} 90 0 0 -${s} 0`
   return {
     Sig: {"pos":[0, 0],"shape":d_pad,"layers":["F.Cu"]},
     Sig_hole: {"pos":[0, 0],"shape":d_hole,"layers":["drill"]},
+  }  
+}()
+
+const Single_Square_Pad = function() {
+  var d = mi(0.4) // 0.4
+  var d_hole = `M -${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 ${d} 0 A ${d} ${d} 90 0 0 -${d} 0`
+  const s = mi(1.25) // 1.0
+  const d_square = `M -${s} ${s} L ${s} ${s} L ${s} -${s} L -${s} -${s} L -${s} ${s}`
+  const dist = 0
+  return {
+    VCC: {"pos":[0, -dist],"shape":d_square,"layers":["F.Cu"]},
+    VCC_hole: {"pos":[0, -dist],"shape":d_hole,"layers":["drill"]}
   }  
 }()
 
@@ -87,13 +99,12 @@ let board = new PCB();
 
 // Board Size, Standard 96-Well Size
 const b = {
-  wall: mi(2.0),               // 2.0 offset to make board fit within 96 well
   r: mi(1.0),                  // 3.0mm is ok
-  w: mi(27),               // 127.76 - from 96 spec
-  h: mi(45)                 // 85.48  - from 96 spec
+  w: mi(30.0),               // 127.76 - from 96 spec
+  h: mi(60.0)                 // 85.48  - from 96 spec
 }
-iw = b.w - b.wall*2
-ih = b.h - b.wall*2
+iw = b.w
+ih = b.h
 
 
 // Interior
@@ -110,19 +121,37 @@ board.addShape("interior", interior);
 /* -- ADD_COMPONENTS -- */
 
 // XIAO
-const xiao = board.add(XIAO_SMD, {translate: pt(-b.w/2 + mi(11.57), 0), rotate: 90, name: "XAIO"}) // mi(11.57) to align XIAO board
+const xiao = board.add(XIAO_SMD, {translate: pt(-b.w/2 + mi(10.65), 0), rotate: 90, name: "XAIO"}) // mi(11.57) to align XIAO board
 //const vcc_jumper = board.add(C_1206_JUMP, {translate: pt(-b.w/2+ 0.170, -0.550), rotate: 0, name: "XAIO"})
 
 // Mirrored Through-Hole Connectors
-const distance = 0.60 // default 0.60
+const distance = mi(25.0) // 25.0
 const pp = board.add(Mirrored_Power_Pads, {translate: pt(-iw/2+mi(2.19), distance)}) // -iw/2+mi(2.19)
 const sp = board.add(Single_Pad, {translate: pt(-iw/2+mi(2.19), -distance)})
 
+// Signal Resistor
+const signal_r = board.add(C_1206_JUMP, {
+  translate: pt(xiao.padX("3"), xiao.padY("3")-mi(7.5)), rotate: 90
+})
 
+// Schottky
+const schottky = board.add(C_1206_JUMP, {
+  translate: pt(xiao.padX("5V"), xiao.padY("5V")+mi(5.0)), rotate: 90
+})
+
+// External VCC
+const ext_5v = board.add(Single_Square_Pad, {
+  translate: pt(-iw/2+mi(2.19), 0.73)
+})
+
+// External GND
+const ext_gnd = board.add(Single_Pad, {
+  translate: pt(-0.20, pp.padY("GND"))
+})
 
 /* -- ADD_WIRES -- */
-const power_line = mi(0.75)
-const signal_line = mi(0.50)
+const power_line = mi(1.00)
+const signal_line = mi(1.00)
 
 const gnd_y_offset = 0.080
 const gnd_x_offset = mi(6.00)
@@ -133,33 +162,47 @@ const type = "fillet" // or "fillet", "chamfer"
 
 // Manual Wires
 
+//VCC
+
+board.wire(path(
+  pp.pad("VCC"),
+  [type, r, pt(xiao.padX("5V"), pp.padY("VCC"))],
+  schottky.pad("1"),
+), power_line)
+
+board.wire(path(
+  schottky.pad("0"),
+  xiao.pad("5V"),
+), power_line)
+
 // GND
 var v = {}
 v.x = 0.36 // 0.36
 board.wire(path(
-  xiao.pad("5V"),
-  [type, r, pt(xiao.padX("5V"), 0)],
-  [type, r, pt(v.x, 0)],
-  [type, r, pt(v.x, pp.padY("VCC"))],
-  pp.pad("VCC"),
+  xiao.pad("GND"),
+  [type, r*2.00, pt(xiao.padX("GND"), pp.padY("GND"))],
+  pp.pad("GND"),
 ), power_line)
 
-//VCC
 board.wire(path(
   pp.pad("GND"),
-  [type, r, pt(xiao.padX("GND"), pp.padY("GND"))],
-  xiao.pad("GND"),
+  ext_gnd.pad("Sig")
 ), power_line)
+
 
 // Signal Wires
 pin = "3"
 board.wire(path(
   sp.pad("Sig"),
-  [type, r*3.0, pt(xiao.padX(pin), sp.padY("Sig"))],
-  xiao.pad(pin),
+  [type, r*2.0, pt(signal_r.padX("0"), sp.padY("Sig"))],
+  signal_r.pad("0")
 ), signal_line)
 
-
+board.wire(path(
+  signal_r.pad("1"),
+  [type, r*2.0, pt(xiao.padX(pin), signal_r.padY("1"))],
+  xiao.pad(pin),
+), signal_line)
 
 
 
@@ -176,10 +219,10 @@ const yMax = Math.max(limit0[1], limit1[1]);
 renderPCB({
   pcb: board,
   layerColors: {
-    "interior": "#ff0000ff",
+    "interior": "#c2c2c2ff",
     //"B.Cu": "#ff4c007f",
     "F.Cu": "#ff00ffb7",
-    //"drill": "#000000ff",
+    "drill": "#000000ff",
     //"padLabels": "#ffff99e5",
     //"componentLabels": "#00e5e5e5",
   },
