@@ -99,9 +99,9 @@ let board = new PCB();
 
 // Board Size, Standard 96-Well Size
 const b = {
-  r: mi(1.0),                  // 3.0mm is ok
-  w: mi(30.0),               // 127.76 - from 96 spec
-  h: mi(60.0)                 // 85.48  - from 96 spec
+  r: mi(1.0),          // 1.0mm
+  w: mi(22.0),         // 22.0
+  h: mi(60.0)          // 60.0
 }
 iw = b.w
 ih = b.h
@@ -146,7 +146,7 @@ const ext_5v = board.add(Single_Square_Pad, {
 
 // External GND
 const ext_gnd = board.add(Single_Pad, {
-  translate: pt(-0.20, pp.padY("GND"))
+  translate: pt(pp.padX("GND")+0.25, pp.padY("GND"))
 })
 
 /* -- ADD_WIRES -- */
@@ -206,11 +206,10 @@ board.wire(path(
 
 
 
-
-
 /* -- RENDER_PCB -- */
-const limit0 = pt(-b.w/2, -b.h/2);
-const limit1 = pt(b.w/2, b.h/2);
+const board_padding = mi(1.5)
+const limit0 = pt(-b.w/2-board_padding, -b.h/2-board_padding);
+const limit1 = pt(b.w/2+board_padding, b.h/2+board_padding);
 const xMin = Math.min(limit0[0], limit1[0]);
 const xMax = Math.max(limit0[0], limit1[0]);
 const yMin = Math.min(limit0[1], limit1[1]);
