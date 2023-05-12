@@ -1,11 +1,14 @@
 echo(version=version());
 
+include <roundedcube.scad>
 
-$fn = 100   ;
+$fn = 25;
 // simple 2D -> 3D extrusion of a rectangle
 
 // base
 
+
+/*
 module roundedBox(dim, c) {
   a = dim[0];
   b = dim[1];
@@ -26,12 +29,7 @@ module roundedBox(dim, c) {
     }
   }
 }
-
-module dot() {
-  color("yellow") {
-    cylinder (h=8, r=2.5, center=true);
-  }
-}
+*/
 
 
 // OuterBox
@@ -40,60 +38,64 @@ b = 85.48;
 h = 8;
 r = 2;
 dotH = 0.5;
+wall = 2;
 
-/*
-m.x1 = -b.w/2+b.wall+m.offset
-m.x2 = b.w/2-b.wall-m.offset
-m.y1 = -b.h/2+b.wall+m.offset
-m.y2 = b.h/2-b.wall-m.offset
-*/
 
-translate([0,0,1+dotH]) {
-  translate([-a/2,-b/2,0]) {
-    dot();
-  }
-  translate([a/2-r*2,-b/2+r*2,0]) {
-    dot();
-  }
-  translate([a/2-r*2,b/2-r*2,0]) {
-    dot();
-  }
-  translate([-a/2+r*2,b/2-r*2,0]) {
-    dot();
-  }
-  translate([0,b/2-r*2,0]) {
-    dot();
-  }
-  translate([0,-b/2+r*2,0]) {
-    dot();
-  }
-  translate([a/2-r*2,0,0]) {
-    dot();
+
+dotRadius = 2.5;
+module dot() {
+  dotRadius = 2.5;
+  color("yellow") {
+    cylinder(2, dotRadius, dotRadius, center=false);
   }
 }
-
-
-
     
 difference() {
   union() {
-    roundedBox([a, b, h, r], "blue");
-    // Inner
+    color("Blue")
+    roundedcube([a, b, h], true, r, "z");               // outside
     translate([0,0,1]) {
-      roundedBox([a-2, b-2, h, r], "green");
+      color("Blue")
+      roundedcube([a-wall, b-wall, h], true, r, "z");   // top offset
     }
   }
-  translate([-51, 0, 2])
-    cube([30,60,h], center = true);
-  translate([0, 0, 2])
-    cube([110,70,h], center = true);
+  translate([-51, 0, 2]) {
+  
+    cube([30, 60, h], true);
+  }
+  translate([0, 0, 2]) {
+    thickness = 20;
+    roundedcube([a-thickness, b-thickness, h], true, r, "z");
+  }
 }
 
 
+// 
+intersection() {
+  translate([0,0,4]) {
+    translate([-a/2+wall/2, -b/2+wall/2, 0]) dot();
+    translate([ a/2-wall/2, -b/2+wall/2,  0])  dot();
+    translate([ a/2-wall/2,  b/2-wall/2, 0]) dot();
+    translate([-a/2+wall/2,  b/2-wall/2, 0]) dot();
+    translate([ 0       ,    b/2-wall/2, 0])   dot();
+    translate([ 0       ,   -b/2+wall/2, 0])   dot();
+    translate([ a/2-wall/2,  0       , 0])   dot();
+  }
+  translate([0,0,5]) {
+    roundedcube([a-wall, b-wall, h], true, r, "z");   // top offset
+  }
+}
+
+
+
+
+// X
 translate([0,0,1]) {
-  rotate(45)
-  cube([2,105,8], center = true);
-  rotate(135)
-  cube([2,105,8], center = true);
+  color("blue") {
+    rotate(45)
+    cube([3,110,8], center = true);
+    rotate(135)
+    cube([3,110,8], center = true);
+  }
 }
 
